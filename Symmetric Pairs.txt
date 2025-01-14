@@ -1,0 +1,34 @@
+WITH table_cte AS
+(SELECT *, ROW_NUMBER() OVER() rn FROM functions)
+SELECT DISTINCT T1.X, T1.Y
+FROM table_cte T1
+JOIN table_cte T2
+WHERE T1.rn <> T2.rn AND T1.X = T2.Y AND T1.Y = T2.X AND T1.X <= T1.Y
+ORDER BY T1.X
+
+You are given a table, Functions, containing two columns: X and Y.
+
+Two pairs (X1, Y1) and (X2, Y2) are said to be symmetric pairs if X1 = Y2 and X2 = Y1.
+Write a query to output all such symmetric pairs in ascending order by the value of X. List the rows such that X1 ≤ Y1.
+
+
+
+WITH pairs_CTE AS
+(SELECT *, CONCAT(X,Y) XY, CONCAT (Y,X) YX, ROW_NUMBER() OVER() row_num
+FROM functions)
+SELECT X, Y
+FROM pairs_CTE 
+WHERE XY IN (SELECT YX FROM pairs_CTE);
+
+
+WITH fortmat_CTE AS
+    (SELECT *,  LPAD(X, 2, '0') AS Xf, LPAD(Y, 2, '0') AS Yf 
+     FROM functions)
+SELECT X, Y, CONCAT(Xf,Yf) XY, CONCAT (Yf,Xf) YX, ROW_NUMBER() OVER() row_num
+FROM fortmat_CTE;
+
+WITH fortmat_CTE AS
+    (SELECT *,  LPAD(X, 2, '0') AS Xf, LPAD(Y, 2, '0') AS Yf 
+     FROM functions)
+SELECT X, Y, CONCAT(Xf,Yf) XY, CONCAT (Yf,Xf) YX, ROW_NUMBER() OVER() row_num
+FROM fortmat_CTE;

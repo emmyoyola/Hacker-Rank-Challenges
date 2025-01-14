@@ -1,0 +1,28 @@
+Samantha interviews many candidates from different colleges using coding challenges and contests. Write a query to print the contest_id, hacker_id, name, and the sums of total_submissions, total_accepted_submissions, total_views, and total_unique_views for each contest sorted by contest_id. Exclude the contest from the result if all four sums are 0.
+
+Note: A specific contest can be used to screen candidates at more than one college, but each college only holds 1 screening contest.
+
+Contests: The contest_id is the id of the contest, hacker_id is the id of the hacker who created the contest, and name is the name of the hacker.
+
+Colleges: The college_id is the id of the college, and contest_id is the id of the contest that Samantha used to screen the candidates.
+
+Challenges: The challenge_id is the id of the challenge that belongs to one of the contests whose contest_id Samantha forgot, and college_id is the id of the college where the challenge was given to candidates.
+
+View_Stats: The challenge_id is the id of the challenge, total_views is the number of times the challenge was viewed by candidates, and total_unique_views is the number of times the challenge was viewed by unique candidates.
+
+Submission_Stats: The challenge_id is the id of the challenge, total_submissions is the number of submissions for the challenge, and total_accepted_submission is the number of submissions that achieved full scores.
+
+WITH tab_CTE AS (
+    SELECT  con.contest_id, hacker_id, name, C.challenge_id, total_submissions, total_accepted_submissions, total_views, total_unique_views
+    FROM Contests con
+    JOIN Colleges col
+        ON con.contest_id = col.contest_id
+    JOIN Challenges C
+        ON col.college_id = C.college_id
+    JOIN View_Stats V
+        ON C.challenge_id = V.challenge_id
+    JOIN Submission_Stats S
+        ON C.challenge_id = S.challenge_id)
+SELECT con.contest_id, hacker_id, name, SUM(total_submissions), SUM(total_accepted_submissions), SUM(total_views), SUM(total_unique_views)
+FROM tab_CTE
+GROUP BY con.contest_id;
