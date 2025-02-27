@@ -1,0 +1,86 @@
+SELECT table2.submission_date, table3.total_unique_hackers, table2.hacker_id, h.name
+FROM
+    (
+    SELECT submission_date, COUNT(submission_id) csd, hacker_id,
+    ROW_NUMBER() OVER(PARTITION BY submission_date ORDER BY COUNT(submission_id) DESC, hacker_id ASC) rnk
+    FROM Submissions
+    GROUP BY submission_date, hacker_id
+    ) AS table2
+JOIN 
+    (
+    SELECT table4.submission_date, COUNT(unique_hackers) AS total_unique_hackers 
+    FROM 
+        (
+        SELECT DISTINCT 
+            s2.submission_date AS submission_date,
+            s2.hacker_id AS unique_hackers 
+        FROM 
+            Submissions AS s2
+        WHERE 
+            (
+                SELECT COUNT(DISTINCT s3.submission_date)
+                FROM Submissions AS s3
+                WHERE s3.hacker_id = s2.hacker_id  
+                  AND s3.submission_date <= s2.submission_date
+            ) = (
+                SELECT COUNT(DISTINCT s4.submission_date)
+                FROM Submissions AS s4
+                WHERE s4.submission_date <= s2.submission_date
+            ) 
+        ) AS table4
+     GROUP BY table4.submission_date
+    ) AS table3 
+        ON table2.submission_date = table3.submission_date
+JOIN Hackers h
+    ON table2.hacker_id = h.hacker_id
+WHERE rnk = 1
+ORDER BY table2.submission_date
+
+
+Julia conducted a  days of learning SQL contest. The start date of the contest was March 01, 2016 and the end date was March 15, 2016.
+
+Write a query to print total number of unique hackers who made at least  submission each day (starting on the first day of the contest), and find the hacker_id and name of the hacker who made maximum number of submissions each day. If more than one such hacker has a maximum number of submissions, print the lowest hacker_id. The query should print this information for each day of the contest, sorted by the date.
+
+
+
+/*
+Part 2
+For each date, hackers who made at least 1 submission
+Logic:
+If for a particular date, say 2016-03-05:
+If the total number of unique submissions made by a hacker 
+equals the total number of unique dates,
+then (are equal) i.e., the hacker has made submissions every day.
+***Important: Use "DISTINCT" as for each submission date, one hacker may have made many submissions,
+so the same hacker_id may be counted multiple times (equal to the number of times they submitted on that date).***
+*/
+UniqueHackers AS (   
+    SELECT DISTINCT 
+        s2.submission_date,
+        s2.hacker_id AS unique_hackers -- Hackers who are consistent until the given date
+    FROM 
+        Submissions AS s2
+    WHERE 
+        -- Check if the hacker has submissions for all dates up to the current date
+        (
+            SELECT COUNT(DISTINCT s3.submission_date) -- Number of distinct dates for this hacker
+            FROM Submissions AS s3
+            WHERE s3.hacker_id = s2.hacker_id  
+              AND s3.submission_date <= s2.submission_date
+        ) = (
+            SELECT COUNT(DISTINCT s4.submission_date) -- Total number of distinct dates up to this date
+            FROM Submissions AS s4
+            WHERE s4.submission_date <= s2.submission_date
+        )
+),
+
+-- Step 4: Count the total number of unique hackers for each date
+UniqueHackerCount AS (
+    SELECT 
+        submission_date,
+        COUNT(unique_hackers) AS total_unique_hackers -- Total consistent hackers per date
+    FROM 
+        UniqueHackers
+    GROUP BY 
+        submission_date
+)

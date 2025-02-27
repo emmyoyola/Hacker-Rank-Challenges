@@ -1,0 +1,2 @@
+SELECT CURRENT_DATE - INTERVAL '1 day' * i AS fecha
+FROM generate_series(0, 9) AS i;

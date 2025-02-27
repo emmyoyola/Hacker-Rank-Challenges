@@ -26,3 +26,16 @@ WITH tab_CTE AS (
 SELECT con.contest_id, hacker_id, name, SUM(total_submissions), SUM(total_accepted_submissions), SUM(total_views), SUM(total_unique_views)
 FROM tab_CTE
 GROUP BY con.contest_id;
+
+
+SELECT  con.contest_id CI, hacker_id, name, SUM(total_submissions), SUM(total_accepted_submissions), SUM(total_views), SUM(total_unique_views)
+FROM Contests con
+JOIN Colleges col
+    ON con.contest_id = col.contest_id
+JOIN Challenges C
+    ON col.college_id = C.college_id
+JOIN View_Stats V
+    ON C.challenge_id = V.challenge_id
+JOIN Submission_Stats S
+    ON C.challenge_id = S.challenge_id
+GROUP BY  CI

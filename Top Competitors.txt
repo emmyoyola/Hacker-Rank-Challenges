@@ -1,0 +1,41 @@
+Julia just finished conducting a coding contest, and she needs your help assembling the leaderboard! Write a query to print the respective hacker_id and name of hackers who achieved full scores for more than one challenge. Order your output in descending order by the total number of challenges in which the hacker earned a full score. If more than one hacker received full scores in same number of challenges, then sort them by ascending hacker_id.
+
+Hackers: The hacker_id is the id of the hacker, and name is the name of the hacker.
+
+Difficulty: The difficult_level is the level of difficulty of the challenge, and score is the maximum score that can be achieved for a challenge at that difficulty level.
+
+Challenges: The challenge_id is the id of the challenge, the hacker_id is the id of the hacker who created the challenge, and difficulty_level is the level of difficulty of the challenge.
+
+Submissions: The submission_id is the id of the submission, hacker_id is the id of the hacker who made the submission, challenge_id is the id of the challenge that the submission belongs to, and score is the score of the submission.
+
+SELECT H.hacker_id, H.name
+FROM Hackers H
+JOIN Submissions S ON H.hacker_id = S.hacker_id
+JOIN Challenges C ON C.challenge_id = S.challenge_id
+JOIN Difficulty D ON D.difficulty_level = C.difficulty_level
+WHERE S.score = D.score
+GROUP BY H.hacker_id, H.name
+HAVING COUNT(*) > 1
+ORDER BY COUNT(*) DESC, h.hacker_id;
+
+WITH cte1 AS
+(
+SELECT C.challenge_id challenge_id, D.score max_score
+FROM Challenges C
+JOIN Difficulty D
+    ON C.difficulty_level = D.difficulty_level
+), cte2 AS
+(
+SELECT S.hacker_id hacker_id, S.challenge_id challenge_id, S.score score, max_score
+FROM Submissions S
+JOIN cte1 c1
+    ON c1.challenge_id = S.challenge_id
+WHERE score = max_score
+)
+SELECT c2.hacker_id, H.name
+FROM cte2 c2
+JOIN Hackers H
+    ON H.hacker_id = c2.hacker_id
+GROUP BY c2.hacker_id, H.name
+HAVING COUNT(c2.hacker_id) > 1
+ORDER BY COUNT(c2.hacker_id) DESC, hacker_id
